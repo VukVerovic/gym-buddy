@@ -1,0 +1,80 @@
+name: kucni-budzet
+
+services:
+  kucni-budzet-db:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    image: kucni-budzet-db:local
+    container_name: kucni-budzet-db
+    user: "0:0"
+    command:
+      [
+        "-jar",
+        "DynamoDBLocal.jar",
+        "-sharedDb",
+        "-dbPath",
+        "/home/dynamodblocal/data"
+      ]
+    ports:
+      - "8000:8000"
+    volumes:
+      - kucni-budzet:/home/dynamodblocal/data
+    restart: unless-stopped
+    networks:
+      - kucni-budzet-net
+
+  kucni-budzet-backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: kucni-budzet-backend:local
+    container_name: kucni-budzet-backend
+    depends_on:
+      - kucni-budzet-db
+    env_file:
+      - ./server/.env
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./server/src:/app/src
+    restart: unless-stopped
+    networks:
+      - kucni-budzet-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  santa-frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    image: kucni-budzet-frontend:local
+    container_name: kucni-budzet-frontend
+    depends_on:
+      - kucni-budzet
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client/src:/app/src
+    restart: unless-stopped
+    environment:
+      - VITE_SERVER_URL=http://localhost:3000
+    networks:
+      - kucni-budzet-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5173/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  kucni-budzet_data:
+
+networks:
+  kucni-budzet-net:
+    driver: bridge
