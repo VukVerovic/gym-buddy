@@ -1,12 +1,12 @@
-name: kucni-budzet
+name: gym-buddy
 
 services:
-  kucni-budzet-db:
+  gym-buddy-db:
     build:
       context: ./database
       dockerfile: Dockerfile
-    image: kucni-budzet-db:local
-    container_name: kucni-budzet-db
+    image: gym-buddy-db:local
+    container_name: gym-buddy-db
     user: "0:0"
     command:
       [
@@ -19,19 +19,20 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - kucni-budzet:/home/dynamodblocal/data
+      - gym-buddy_data:/home/dynamodblocal/data    
     restart: unless-stopped
     networks:
-      - kucni-budzet-net
+      - gym-buddy-net
 
-  kucni-budzet-backend:
+
+  server:
     build:
       context: ./server
       dockerfile: Dockerfile
-    image: kucni-budzet-backend:local
-    container_name: kucni-budzet-backend
+    image: gym-buddy-backend:local
+    container_name: gym-buddy-backend
     depends_on:
-      - kucni-budzet-db
+      - gym-buddy-db                  
     env_file:
       - ./server/.env
     ports:
@@ -40,41 +41,42 @@ services:
       - ./server/src:/app/src
     restart: unless-stopped
     networks:
-      - kucni-budzet-net
+      - gym-buddy-net
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 15s
 
-  santa-frontend:
+  client:
     build:
       context: ./client
       dockerfile: Dockerfile
-    image: kucni-budzet-frontend:local
-    container_name: kucni-budzet-frontend
+    image: gym-buddy-frontend:local
+    container_name: gym-buddy-frontend
     depends_on:
-      - kucni-budzet
+      server:                          
+        condition: service_started     
     ports:
       - "5173:5173"
     volumes:
       - ./client/src:/app/src
     restart: unless-stopped
     environment:
-      - VITE_SERVER_URL=http://localhost:3000
+      - VITE_API_URL=http://localhost:3000
     networks:
-      - kucni-budzet-net
+      - gym-buddy-net
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:5173/"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5173/ || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
 
 volumes:
-  kucni-budzet_data:
+  gym-buddy_data: 
 
 networks:
-  kucni-budzet-net:
+  gym-buddy-net:
     driver: bridge

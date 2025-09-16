@@ -1,21 +1,25 @@
-// app.mjs
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
 
-import kategorijaRouter from "./routers/kategorijaRouter.mjs";
-import transakcijaRouter from "./routers/transakcijaRouter.mjs";
+
 import { bodyParser } from "./middlewares/middlewares.mjs";
+import ExerciseRouter from "./routers/exerciseRoutes.mjs";
+import WorkoutRouter from "./routers/workoutRoutes.mjs";
+import UserRouter from "./routers/userRoutes.mjs";
 
 const app = express();
 
-app.use(cors(), bodyParser, express.json());
+// middlewares
+app.use(cors());
+app.use(express.json());
+app.use(bodyParser);
 
-// Rute
-app.use("/categories", kategorijaRouter);
-app.use("/transactions", transakcijaRouter);
+app.use("/exercises", ExerciseRouter);
+app.use("/workouts", WorkoutRouter);
+app.use("/users", UserRouter);  
 
-// Health
+// health
 app.get("/health", (_req, res) => res.send({ message: "ok" }));
 
 export default app;

@@ -1,29 +1,54 @@
+import { useEffect, useState } from "react";
+import { apiGet, apiPost } from "../services/api";
 import ExerciseForm from "../components/ExerciseForm.jsx";
 import ExerciseList from "../components/ExerciseList.jsx";
 
-function uid() {
-  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
-}
+export default function ExercisesPage() {
+  const [groups] = useState(["Grudi", "Leđa", "Noge", "Ramena", "Ruke", "Stomak", "Core"]);
+  const [exercises, setExercises] = useState([]);
 
-export default function ExercisesPage({ exercises, setExercises }) {
-  function add({ name, type, muscleGroup }) {
-    setExercises(prev => [...prev, { id: uid(), name, type, muscleGroup }]);
+  async function fetchExercises() {
+    try {
+      const data = await apiGet("/exercises/all");
+      setExercises(data.exercises || []);
+    } catch (e) {
+      console.error("Greška vežbe:", e);
+    } 
   }
-  function del(id) {
-    setExercises(prev => prev.filter(x => x.id !== id));
-  }
+
+  useEffect(() => {
+    fetchExercises();
+  }, []);
+
+  const addExercise = async ({ name, type, muscleGroup }) => {
+    try {
+      await apiPost("/exercises/create", { name, type, muscleGroup });
+      await fetchExercises();
+    } catch (e) {
+      console.error("Greška dodaj vežbu:", e);
+    }
+  };
+
+  const delExercise = async (id) => {
+    try {
+      await apiPost("/exercises/delete", { id });
+      await fetchExercises();
+    } catch (e) {
+      console.error("Greška briši vežbu:", e);
+    }
+  };
 
   return (
     <div style={{ display: "grid", gap: 12 }}>
-      <div className="card">
-        <h2 className="h1" style={{ fontSize: 20 }}>Dodaj vežbu</h2>
-        <ExerciseForm onAdd={add} />
-      </div>
+      <section className="card">
+        <div className="card-h">Dodaj vežbu</div>
+        <ExerciseForm onAdd={addExercise} groups={groups} />
+      </section>
 
-      <div className="card">
-        <h2 className="h1" style={{ fontSize: 20 }}>Lista vežbi</h2>
-        <ExerciseList exercises={exercises} onDelete={del} />
-      </div>
+      <section className="card">
+        <div className="card-h">Vežbe</div>
+          <ExerciseList exercises={exercises} onDelete={delExercise} />
+      </section>
     </div>
   );
 }

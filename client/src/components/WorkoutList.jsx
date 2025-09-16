@@ -23,7 +23,7 @@ export default function WorkoutList({ workouts, exercisesById, onDelete }) {
                       <ul>
                         {it.sets.map((s, i) => (
                           <li key={i} className="muted">
-                            {s.reps ? `${s.reps}x ` : ""}{s.weightKg ? `${s.weightKg}kg ` : ""}
+                   143         {s.reps ? `${s.reps}x ` : ""}{s.weight ? `${s.weight}kg ` : ""}
                             {s.timeSec ? `${s.timeSec}s ` : ""}{s.distanceM ? `${s.distanceM}m` : ""}
                           </li>
                         ))}
