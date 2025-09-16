@@ -75,7 +75,7 @@ export default function WorkoutsPage() {
         <div className="card">
           <h3 className="h1" style={{ fontSize: 18 }}>Statistika (tekući mesec)</h3>
           <div className="sub">
-            Broj odrađenih treninga: <strong style={{ color: "#e5e7eb" }}>{thisMonthCount}</strong>
+            Broj odrađenih treninga: <strong style={{ color: "#00ff15ff" }}>{thisMonthCount}</strong>
           </div>
         </div>
         <div className="card">
