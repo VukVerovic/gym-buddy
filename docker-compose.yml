@@ -2,10 +2,7 @@ name: gym-buddy
 
 services:
   gym-buddy-db:
-    build:
-      context: ./database
-      dockerfile: Dockerfile
-    image: gym-buddy-db:local
+    image: amazon/dynamodb-local
     container_name: gym-buddy-db
     user: "0:0"
     command:
@@ -14,16 +11,15 @@ services:
         "DynamoDBLocal.jar",
         "-sharedDb",
         "-dbPath",
-        "/home/dynamodblocal/data"
+        "/home/dynamodblocal/data",
       ]
     ports:
       - "8000:8000"
     volumes:
-      - gym-buddy_data:/home/dynamodblocal/data    
+      - gym-buddy_data:/home/dynamodblocal/data
     restart: unless-stopped
     networks:
       - gym-buddy-net
-
 
   server:
     build:
@@ -32,7 +28,7 @@ services:
     image: gym-buddy-backend:local
     container_name: gym-buddy-backend
     depends_on:
-      - gym-buddy-db                  
+      - gym-buddy-db
     env_file:
       - ./server/.env
     ports:
@@ -56,8 +52,8 @@ services:
     image: gym-buddy-frontend:local
     container_name: gym-buddy-frontend
     depends_on:
-      server:                          
-        condition: service_started     
+      server:
+        condition: service_started
     ports:
       - "5173:5173"
     volumes:
@@ -75,7 +71,7 @@ services:
       start_period: 10s
 
 volumes:
-  gym-buddy_data: 
+  gym-buddy_data:
 
 networks:
   gym-buddy-net:
